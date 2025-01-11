@@ -7,7 +7,6 @@ import io.broadcast.engine.BroadcastEngine;
 import io.broadcast.engine.BroadcastPipeline;
 import io.broadcast.engine.announcement.AnnouncementExtractor;
 import io.broadcast.engine.announcement.ContentedAnnouncement;
-import io.broadcast.engine.event.BroadcastListener;
 import io.broadcast.engine.record.extract.RecordExtractor;
 import io.broadcast.wrapper.smtp.MailCredentials;
 import io.broadcast.wrapper.smtp.SMTPBroadcastDispatcher;
@@ -17,8 +16,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class EmailType extends AbstractMailingType {
 
+    private static final boolean CLOSE_CONNECTION_AFTER_QUERY_FLAG = false;
+
     @Inject
     private EmailMetadataProperties emailMetadataProperties;
+
+    private BroadcastEngine broadcastEngine;
 
     public EmailType(Provider<Injector> injectorProvider) {
         super(injectorProvider);
@@ -31,8 +34,9 @@ public class EmailType extends AbstractMailingType {
 
     @Override
     public void broadcast(@NotNull Injector injector, @NotNull ContentedAnnouncement<String> announcement) {
-        var pipeline = generateEMailPipeline(injector, announcement);
-        var broadcastEngine = new BroadcastEngine(pipeline);
+        if (broadcastEngine == null) {
+            broadcastEngine = new BroadcastEngine(generateEMailPipeline(injector, announcement));
+        }
 
         broadcastEngine.broadcastNow();
     }
@@ -49,13 +53,12 @@ public class EmailType extends AbstractMailingType {
                 .smtpPort(emailMetadataProperties.getSmtpPort())
                 .build();
 
-        var recordExtractor = RecordExtractor.chunkyParallel(createJdbcStringRecordSelector(injector));
+        var recordExtractor = RecordExtractor.chunkyParallel(createJdbcStringRecordSelector(injector, CLOSE_CONNECTION_AFTER_QUERY_FLAG));
         var announcementExtractor = AnnouncementExtractor.constant(announcement);
 
         return BroadcastPipeline.createContentedPipeline(String.class, String.class)
                 .setDispatcher(new SMTPBroadcastDispatcher(smtpMetadata))
                 .setRecordExtractor(recordExtractor)
-                .setAnnouncementExtractor(announcementExtractor)
-                .addListener(BroadcastListener.stdout());
+                .setAnnouncementExtractor(announcementExtractor);
     }
 }

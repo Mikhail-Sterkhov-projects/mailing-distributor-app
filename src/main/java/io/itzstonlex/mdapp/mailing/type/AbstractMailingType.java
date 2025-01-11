@@ -26,7 +26,7 @@ public abstract class AbstractMailingType implements MailingType<ContentedAnnoun
     protected abstract void broadcast(@NotNull Injector injector, @NotNull ContentedAnnouncement<String> announcement);
 
     @SneakyThrows
-    protected final JdbcRecordSelector<String> createJdbcStringRecordSelector(Injector injector) {
+    protected final JdbcRecordSelector<String> createJdbcStringRecordSelector(Injector injector, boolean closeAfterQuery) {
         var jdbcConnectionProperties = injector.getInstance(JdbcConnectionProperties.class);
 
         if (jdbcConnectionProperties.getSuitableDriver() != null) {
@@ -43,7 +43,7 @@ public abstract class AbstractMailingType implements MailingType<ContentedAnnoun
                         .table(jdbcConnectionProperties.getSelectorTable())
                         .idColumn(jdbcConnectionProperties.getSelectorColumn())
                         .chunkSize(jdbcConnectionProperties.getChunkSize())
-                        .autoCloseable(true)
+                        .autoCloseable(closeAfterQuery)
                         .build());
     }
 }
