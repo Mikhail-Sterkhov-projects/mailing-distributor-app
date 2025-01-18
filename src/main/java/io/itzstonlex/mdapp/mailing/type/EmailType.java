@@ -7,6 +7,7 @@ import io.broadcast.engine.BroadcastEngine;
 import io.broadcast.engine.BroadcastPipeline;
 import io.broadcast.engine.announcement.AnnouncementExtractor;
 import io.broadcast.engine.announcement.ContentedAnnouncement;
+import io.broadcast.engine.record.Record;
 import io.broadcast.engine.record.extract.RecordExtractor;
 import io.broadcast.wrapper.smtp.SMTPBroadcastDispatcher;
 import io.broadcast.wrapper.smtp.SMTPMetadata;
@@ -15,6 +16,7 @@ import io.broadcast.wrapper.smtp.data.MailProperties;
 import io.itzstonlex.mdapp.mailing.BufferedMessage;
 import io.itzstonlex.mdapp.properties.EmailMetadataProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmailType extends AbstractMailingType {
 
@@ -62,7 +64,14 @@ public class EmailType extends AbstractMailingType {
                 .build();
 
         var recordExtractor = RecordExtractor.chunkyParallel(createJdbcStringRecordSelector(injector, CLOSE_CONNECTION_AFTER_QUERY_FLAG));
-        var announcementExtractor = AnnouncementExtractor.mutable(bufferedMessage::getAndDelete);
+        var message = bufferedMessage.getAndDelete();
+
+        var announcementExtractor = new AnnouncementExtractor<ContentedAnnouncement<String>>() {
+            @Override
+            public @Nullable <I> ContentedAnnouncement<String> extractAnnouncement(Record<I> record) {
+                return message;
+            }
+        };
 
         return BroadcastPipeline.createContentedPipeline(String.class, String.class)
                 .setDispatcher(new SMTPBroadcastDispatcher(smtpMetadata))
