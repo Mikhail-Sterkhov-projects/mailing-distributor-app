@@ -8,9 +8,10 @@ import io.broadcast.engine.BroadcastPipeline;
 import io.broadcast.engine.announcement.AnnouncementExtractor;
 import io.broadcast.engine.announcement.ContentedAnnouncement;
 import io.broadcast.engine.record.extract.RecordExtractor;
-import io.broadcast.wrapper.smtp.MailCredentials;
 import io.broadcast.wrapper.smtp.SMTPBroadcastDispatcher;
 import io.broadcast.wrapper.smtp.SMTPMetadata;
+import io.broadcast.wrapper.smtp.data.MailCredentials;
+import io.broadcast.wrapper.smtp.data.MailProperties;
 import io.itzstonlex.mdapp.mailing.BufferedMessage;
 import io.itzstonlex.mdapp.properties.EmailMetadataProperties;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,11 @@ public class EmailType extends AbstractMailingType {
 
     private BroadcastPipeline<String, ContentedAnnouncement<String>> generateEMailPipeline(Injector injector) {
         var smtpMetadata = SMTPMetadata.builder()
+                .properties(MailProperties.builder()
+                        .smtpAuth(true)
+                        .sslEnabled(false)
+                        .startTlsEnabled(false)
+                        .build())
                 .senderCredentials(MailCredentials.builder()
                         .username(emailMetadataProperties.getCredentialsUsername())
                         .email(emailMetadataProperties.getCredentialsEmail())

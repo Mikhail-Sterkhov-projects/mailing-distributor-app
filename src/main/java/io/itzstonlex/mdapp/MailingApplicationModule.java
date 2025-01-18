@@ -72,6 +72,8 @@ public final class MailingApplicationModule extends AbstractModule {
 
         if (!propertiesFile.exists()) {
             try {
+                System.out.println("Create new properties configuration from classpath: /" + filename);
+
                 Files.copy(CLASS_LOADER.getResourceAsStream(filename), propertiesFile.toPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -79,6 +81,8 @@ public final class MailingApplicationModule extends AbstractModule {
         }
 
         try (var inputStream = new FileInputStream(propertiesFile)) {
+            System.out.println("Properties configuration loaded: /" + filename);
+
             properties.load(inputStream);
         } catch (IOException e) {
             throw new RuntimeException(e);

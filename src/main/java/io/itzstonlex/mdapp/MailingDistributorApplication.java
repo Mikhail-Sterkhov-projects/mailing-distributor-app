@@ -16,6 +16,7 @@ public class MailingDistributorApplication {
                 .start();
 
         var httpServer = injector.getInstance(MailingHttpServer.class);
+
         httpServer.start();
     }
 }

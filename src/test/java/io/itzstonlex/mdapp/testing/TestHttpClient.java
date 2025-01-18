@@ -1,3 +1,5 @@
+package io.itzstonlex.mdapp.testing;
+
 import com.jrest.http.client.HttpClients;
 import com.jrest.mvc.model.Content;
 import com.jrest.mvc.model.HttpResponse;
